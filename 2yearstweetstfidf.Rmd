@@ -1,0 +1,171 @@
+---
+title: "2yearstweets"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+Loading the libraries 
+```{r}
+library(tm)
+library(readxl)
+library(NLP)
+```
+
+Loading the data in
+```{r}
+library(readxl)
+worksheet <- read_excel("~/2yeardatafullwithtables.xlsx")
+View(worksheet)
+
+
+```
+
+
+
+Create the corpus
+```{r}
+
+tweets_corpus = Corpus(VectorSource(worksheet$text_filtered))
+tweet_corpus = Corpus(VectorSource(worksheet$text_filtered))
+
+
+inspect(tweet_corpus[1])
+
+
+
+```
+
+
+
+```{r}
+
+print(stopwords("en"))
+"supporting" %in% stopwords("en")
+
+"many" %in% stopwords("en")
+"get" %in% stopwords("en")
+"hutch" %in% stopwords("en")
+"can" %in% stopwords("en") 
+
+```
+
+cleaning and stemming the corpus and checking it 
+
+```{r}
+tweets_corpus= tm_map(tweets_corpus, content_transformer(tolower))
+tweets_corpus= tm_map(tweets_corpus, removeNumbers)
+tweets_corpus= tm_map(tweets_corpus, removePunctuation)
+tweets_corpus= tm_map(tweets_corpus, removeWords, c("the", "and", stopwords("english")))
+tweets_corpus=  tm_map(tweets_corpus, stripWhitespace)
+
+
+inspect(tweets_corpus[1])
+inspect(tweet_corpus[1])
+
+
+```
+
+
+```{r}
+
+
+tweets_dtm <- DocumentTermMatrix(tweets_corpus)
+tweets_dtm
+
+```
+
+```{r}
+
+inspect(tweets_dtm[500:505, 500:505])
+
+inspect(tweets_dtm[2171:2179, ])
+
+
+```
+
+
+
+
+
+
+
+
+```{r}
+
+tweets_dtm_tfidf2 <- DocumentTermMatrix(tweets_corpus, control = list(weighting = weightTfIdf))
+
+inspect(tweets_dtm_tfidf2[2171:2179,])
+
+
+
+
+terms=Terms(tweets_dtm_tfidf2)
+
+
+"lab" %in% terms
+"get" %in% stopwords("en")
+"get" %in% terms
+
+"people" %in% terms
+
+terms
+
+"â???o" %in% Terms(tweets_dtm_tfidf2)
+"â???oscared" %in% terms
+"leader" %in% terms
+"scienc" %in% terms
+
+
+
+
+#inspect(tweets_dtm_tfidf[,1:2])
+
+
+```
+
+
+
+
+
+```{r}
+
+tweets_dtm_tfidf <- DocumentTermMatrix(tweets_corpus, control = list(weighting = weightTfIdf))
+
+
+tweets_dtm_tfidf = removeSparseTerms(tweets_dtm_tfidf, .97)
+print("2171")
+inspect(tweets_dtm_tfidf[2171:2179,])
+
+print("head")
+head.matrix(tweets_dtm_tfidf)
+print("1-8")
+inspect(tweets_dtm_tfidf[1:8,])
+print("tweets")
+tweets_dtm_tfidf
+# 
+print("")
+Terms(tweets_dtm_tfidf)
+print("")
+#
+str(tweets_dtm_tfidf)
+
+# apply(tweets_dtm_tfidf, 1, function(x) {
+#     x2 <- sort(x, TRUE)
+#     x2[x2 >= x2[3]]
+# })
+
+```
+
+
+
+
+
+
+
+
+

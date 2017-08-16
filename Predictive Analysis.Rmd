@@ -1,0 +1,184 @@
+```{r}
+library(readxl)
+worksheet <- read_excel("~/2yeardatafullwithtablesclassandemition.xlsx", 
+    col_types = c("blank", "blank", "numeric", 
+        "blank", "numeric", "blank", "numeric", 
+        "blank", "blank", "numeric", "numeric", 
+        "blank", "text", "blank", "numeric", 
+        "blank", "blank", "blank", "numeric", 
+        "blank", "numeric", "blank", "numeric", 
+        "blank", "numeric", "numeric", "blank", 
+        "blank", "text", "numeric", "text", 
+        "text", "numeric"))
+View(X2yeardatafullwithtablesclassandemition)
+worksheet$DayOfWeek = as.factor(worksheet$DayOfWeek)
+worksheet$`Source V2` = as.factor(worksheet$`Source V2`)
+worksheet$has_link = as.factor(worksheet$has_link)
+worksheet$has_picture = as.factor(worksheet$has_picture)
+worksheet$`Has Hashtag?` = as.factor(worksheet$`Has Hashtag?`)
+worksheet$Hour = as.factor(worksheet$Hour)
+worksheet$url_shortended = as.factor(worksheet$url_shortended)
+worksheet$`Has Mention` = as.factor(worksheet$`Has Mention`)
+worksheet$imp_word_count = as.factor(worksheet$imp_word_count)
+worksheet$url_shortended = as.factor(worksheet$url_shortended)
+worksheet$Month = as.factor(worksheet$Month)
+worksheet$Class = as.factor(worksheet$Class)
+worksheet$Sentiment = as.factor(worksheet$Sentiment)
+
+```
+
+
+
+
+```{r}
+#splits the data into train and test
+
+set.seed(101) 
+# smp_size <- floor(0.75 * nrow(worksheet))
+# train_ind <- sample(seq_len(nrow(worksheet)), size = smp_size)
+# 
+# train <- worksheet[train_ind, ]
+# test <- worksheet[-train_ind, ]
+
+
+```
+
+```{r}
+
+library(polycor)
+worksheet1 = as.data.frame(worksheet)
+hetcor(worksheet1)
+
+ 
+
+```
+
+
+
+```{r}
+
+
+
+
+
+#(worksheet,main = "Scatterplot Matrix")
+png(file="scatterplot.png", width = 1000, height = 700)
+pairs(~., data=worksheet,main = "Scatterplot Matrix")
+dev.off()
+
+
+
+
+
+
+```
+
+
+
+```{r}
+BigModel=lm(`Total Interactions`~.,data=worksheet)
+
+summary(BigModel)
+
+```
+
+
+```{r}
+
+
+# library(leaps)
+# 
+# leaps(x=worksheet[,2:ncol(worksheet)],y=worksheet[,1],method="adjr2",nbest=1)
+
+```
+
+```{r}
+
+library(leaps)
+leaps=regsubsets(`Total Interactions`~.,data=worksheet,nbest=1)
+plot(leaps,scale="adjr2")
+
+
+
+
+```
+
+
+```{r}
+
+
+
+tweetmodelv1= lm(`Total Interactions`~has_link+`Length of Filtered Text`+has_picture+`Number of Hashtags`+`Has Hashtag?`+`Source V2`+DayOfWeek+url_shortended+Month+Class,data=worksheet)
+
+
+summary(tweetmodelv1)
+
+```
+
+
+
+```{r}
+
+hist(tweetmodelv1$residuals)
+
+
+
+```
+```{r}
+
+plot(tweetmodelv1)
+#the Q-Q plot shows it is right skewed 
+
+```
+
+```{r}
+#       haslink,haspicture,numberofhastags,hashashtags,sourceofurl,totalineractrion,month,dayofweek,hour,hasmentions,numberofmentions,urlshortened,impworcount
+
+
+input=c(1,99,1,1,1,'Other',0,2,6,1,1,2,'Yes',0,8,13,"Health Advice","positive",0)
+newdata=rbind(worksheet,input)
+
+#fixes the data type changes
+#check type with cbind(lapply(worksheet, class), lapply(newdata, class))
+#newdata$favorites=as.numeric(newdata$favorites)
+newdata$`Length of Filtered Text` = as.numeric(newdata$`Length of Filtered Text`)
+newdata$`Number of Hashtags` = as.numeric(newdata$`Number of Hashtags`)
+newdata$`Total Interactions` = as.numeric(newdata$`Total Interactions`)
+newdata$`Number of Mentions` = as.numeric(newdata$`Number of Mentions`)
+
+
+
+  
+predictedrt=predict.lm(tweetmodelv1,newdata=newdata,interval="prediction",level=0.9)
+
+tail(predictedrt,n=1)
+
+
+summary(tweetmodelv1)
+# drop1(tweetmodelv1,~.,test="F")
+
+```
+```{r}
+
+
+library(naivebayes)
+tmp.bayesmodel <- naive_bayes(`Total Interactions`~ ., data = newdata)
+
+
+```
+
+```{r}
+library(ggplot2)
+png(file="boxplots.png", width = 1000, height = 700)
+
+ggplot(worksheet, aes(x = `Class`, y = `Total Interactions`)) +
+  geom_boxplot(fill = "black", colour = "red") +
+  scale_x_discrete() + xlab("Class") +
+  ylab("total interactions")
+dev.off()
+
+
+
+
+```
+
