@@ -1,0 +1,85 @@
+```{r}
+
+#loading required packages
+library(randomForest)
+
+```
+
+```{r}
+
+#loading dataframe
+library(readxl)
+Manual_Classifiers_REDUX <- read_excel("~/Manual Classifiers REDUX.xlsx", 
+    col_types = c("text", "text", "blank", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric"))
+View(Manual_Classifiers_REDUX)
+worksheet <- Manual_Classifiers_REDUX
+
+worksheet$Class <- as.factor(worksheet$Class)
+
+
+```
+
+
+```{r}
+
+#reproducibility
+set.seed(512)
+
+#setting train to manually classified data
+train <- worksheet[1:1417,]
+test <- worksheet[1418:6829,]
+
+
+```
+
+
+```{r}
+
+#randomForest
+model <- randomForest(Class ~ a + all + an + any + are + as + at + be + by +can + cancer + cure + do + every + for. + from + find + funding + had + has + have + her + his + hiv + if. + in. + is + it + lab + may + more + must + no + now + of + on + only + or + our + research + science + should + so + such + than + thanks + that + the + this + to +was + what + when + with + you, data = train, ntree = 5000, mtry = 25, importance = TRUE)
+
+#plotting the model, saving a copy to the hard drive (the lines for this are commented)
+png(file="MDA Image V2.png", width = 1000, height = 700)
+varImpPlot(model)
+dev.off()
+
+```
+
+
+```{r}
+
+#running the prediction based on the model
+test$Class <- predict(model, test, type = "response")
+
+```
+
+
+```{r}
+
+#combining train and test
+fullModel <- rbind(train, test)
+View(fullModel)
+
+#turning into CSV file
+write.csv(fullModel, file = "Full Classifiers V2.csv", row.names = FALSE)
+
+```
