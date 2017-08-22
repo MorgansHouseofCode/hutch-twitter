@@ -18,4 +18,6 @@ combineretweetsandfavorites.py was a custom script built after I realized I had 
 
 addsentimentdata.py utilized the Google Cloud Platform to assign a "sentiment" value for each tweet, ranging from -1.0 to +1.0, that evoked how "negative" or "positive" a tweet was.
 
-This completed the list of scripts that were used, in sequence, to develop the tweet database that is the end result of these scripts being run.
+addfinalexceldatatotweetdatabase.py was used to grab information from an Excel spreadsheet Aramya uploaded (2yearsoftweetsfinalized.xlsx) such as categories and media ownership, and add these attributes to the JSON format tweet database (2yearsoftweetsfinalized.xlsx).
+
+This completes the list of scripts that were used, in sequence, to develop the tweet database that is the end result of these scripts being run.
