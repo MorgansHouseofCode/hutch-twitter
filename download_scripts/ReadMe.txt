@@ -20,4 +20,6 @@ addsentimentdata.py utilized the Google Cloud Platform to assign a "sentiment" v
 
 addfinalexceldatatotweetdatabase.py was used to grab information from an Excel spreadsheet Aramya uploaded (2yearsoftweetsfinalized.xlsx) such as categories and media ownership, and add these attributes to the JSON format tweet database (2yearsoftweetsfinalized.xlsx).
 
-This completes the list of scripts that were used, in sequence, to develop the tweet database that is the end result of these scripts being run.
+filluserlist.py was used to create a file "userlist.json", of all the screen names (no user ID numbers) of all the users who interacted with @fredhutch posts; this script took from the tweet database (user_timeline_with etc.) to fill the user list JSON file.
+
+filluserdatabase.py, in turn, took the usernames from the "userlist.json" file and retrieved all the additional information it could on each user, storing it in "userdatabase.json".
