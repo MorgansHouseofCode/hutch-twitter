@@ -1,0 +1,207 @@
+
+
+#loads in the spreadsheet and select certian indicators as factors
+```{r}
+library(readxl)
+worksheet <- read_excel("~/2yeardatafullwithtablesclassandemition.xlsx", 
+    col_types = c("numeric", "blank", "numeric", 
+        "blank", "numeric", "blank", "numeric", 
+        "blank", "blank", "numeric", "numeric", 
+        "blank", "text", "numeric", "blank", 
+        "blank", "blank", "blank", "numeric", 
+        "blank", "numeric", "blank", "numeric", 
+        "blank", "numeric", "numeric", "blank", 
+        "blank", "text", "blank", "text", 
+        "numeric", "numeric"))
+View(worksheet)
+worksheet$DayOfWeek = as.factor(worksheet$DayOfWeek)
+worksheet$`Source V2` = as.factor(worksheet$`Source V2`)
+worksheet$has_link = as.factor(worksheet$has_link)
+worksheet$has_picture = as.factor(worksheet$has_picture)
+worksheet$`Has Hashtag?` = as.factor(worksheet$`Has Hashtag?`)
+worksheet$Hour = as.factor(worksheet$Hour)
+worksheet$url_shortended = as.factor(worksheet$url_shortended)
+worksheet$`Has Mention` = as.factor(worksheet$`Has Mention`)
+worksheet$imp_word_count = as.factor(worksheet$imp_word_count)
+worksheet$url_shortended = as.factor(worksheet$url_shortended)
+worksheet$Month = as.factor(worksheet$Month)
+worksheet$Class = as.factor(worksheet$Class)
+worksheet$`Sentiment per Document` = as.factor(worksheet$`Sentiment per Document`)
+
+str(worksheet)
+levels(worksheet$`Sentiment per Document`)
+levels(worksheet$`Source V2`)
+summary(worksheet$`Sentiment per Document`)
+
+```
+
+
+
+#sets the seed 
+
+```{r}
+
+set.seed(101) 
+
+
+```
+
+#Creates a scatter plot matrix of all correlations
+```{r}
+
+
+
+
+
+#(worksheet,main = "Scatterplot Matrix")
+png(file="scatterplot.png", width = 1000, height = 700)
+pairs(~., data=worksheet,main = "Scatterplot Matrix")
+dev.off()
+
+
+
+
+
+
+```
+
+
+#Prints the linear model out for retweets 
+```{r}
+BigModelRT=lm(Retweets~.,data=worksheet)
+
+summary(BigModelRT)
+
+
+
+
+```
+
+#Prints the linear model out for likes 
+
+```{r}
+
+BigModelFav=lm(favorites~.,data=worksheet)
+
+summary(BigModelFav)
+
+
+
+
+```
+
+
+
+
+
+
+
+
+#Smaller Linear model with only certain predictors for Retweets
+```{r}
+
+
+
+tweetmodelRT= lm(Retweets~has_link+`Has Hashtag?`+DayOfWeek+url_shortended+Class+`Sentiment per Document`+imp_word_count,data=worksheet)
+
+
+summary(tweetmodelRT)
+
+```
+
+#histograms and plots of the models for Retweets
+
+```{r}
+
+hist(tweetmodelRT$residuals)
+hist(BigModelRT$residuals)
+
+plot(tweetmodelRT)
+plot(BigModelRT)
+
+
+```
+
+#Smaller Linear model with only certain predictors for Likes
+
+```{r}
+
+
+
+tweetmodelFav=lm(favorites~has_link+has_picture+`Source V2`+`Has Hashtag?`+`Has Mention`+DayOfWeek+Hour+url_shortended+Class+`Sentiment per Document`+imp_word_count,data=worksheet)
+
+
+summary(tweetmodelFav)
+
+```
+
+
+```{r}
+
+hist(tweetmodelFav$residuals)
+hist(BigModelFav$residuals)
+
+
+
+plot(tweetmodelFav)
+plot(BigModelFav)
+
+```
+
+
+
+
+#creates a fake tweet and predicts how many Retweets and likes it gets 
+```{r}
+#Retweets,has_link,Length of Filtered Text,has_picture,Number of Hashtags,Has hashtag,Source V2,favorites,Month,DayOfWeek,Hour,Has mention,Number of mentions,url_shortended,imp_char_count,Class,Sentiment,imp_word_count
+
+
+input=c(1,1,99,1,1,1,'Hutch',0,2,6,11,1,2,'No',0,"Health Advice","Positive",0)
+newdata=rbind(worksheet,input)
+
+#fixes the data type changes
+#check type with cbind(lapply(worksheet, class), lapply(newdata, class))
+newdata$Retweets=as.numeric(newdata$Retweets)
+newdata$favorites=as.numeric(newdata$favorites)
+newdata$`Length of Filtered Text` = as.numeric(newdata$`Length of Filtered Text`)
+newdata$`Number of Hashtags` = as.numeric(newdata$`Number of Hashtags`)
+newdata$`Number of Mentions` = as.numeric(newdata$`Number of Mentions`)
+newdata$imp_char_count=as.numeric(newdata$imp_char_count)
+
+
+  
+predictedrt=predict.lm(BigModelRT,newdata=newdata,interval="prediction",level=0.9)
+
+tail(predictedrt,n=1)
+
+
+#summary(tweetmodelv1)
+# drop1(tweetmodelv1,~.,test="F")
+
+```
+
+predictedFav=predict.lm(BigModelFav,newdata=newdata,interval="prediction",level=0.9)
+
+tail(predictedFav,n=1)
+
+
+
+#creates a boxplot of class VS Retweets
+```
+
+
+```{r}
+library(ggplot2)
+png(file="boxplots.png", width = 1000, height = 700)
+
+ggplot(worksheet, aes(x = `Class`, y = `Retweets`)) +
+  geom_boxplot(fill = "black", colour = "red") +
+  scale_x_discrete() + xlab("Class") +
+  ylab("Retweets")
+dev.off()
+
+
+
+
+```
+
