@@ -1,0 +1,183 @@
+
+```{r}
+#creates a twitter token
+
+## whatever name you assigned to your created app
+appname <- "rtweet_token"
+
+## api key (example below is not a real key)
+key <- "K2xE3Zae51f3duoOF8XeeTRAz"
+
+## api secret (example below is not a real key)
+secret <- "AayxSICee13fUelX8UnTj9DXxrjewtr3tHyUo7K6ExJx7lOZZKu"
+
+## create token named "twitter_token"
+twitter_token <- create_token(
+    app = appname,
+    consumer_key = key,
+    consumer_secret = secret)
+```
+```{r}
+library(rtweet)
+library(dplyr)
+library(purrr)
+library(igraph)
+library(ggraph)
+
+#gets all of hutches followers, Just the user ID numbers though 
+hutch=get_followers("@fredhutch", n = 75000, parse = TRUE,
+as_double = FALSE, token = NULL)
+
+
+
+#creates a list of most active users on Huch Twitter Channel
+influncerv1.2=c("UWMedicine","HarmitMalik","SeattleCCA","jonadrabi","CultPerfectMoms","heatherswifty","PergamIC","MartaDiazFonsec","End_Disparities","Rachel_Tompa","Engel140","defeatHIV","LotteSteuten","double_whammied"
+)
+
+
+#Pulls information about the users 
+useres = lookup_users(influncerv1.2)
+
+
+
+#displays the usernames 
+useres %>% select(screen_name) %>% unique() %>%  arrange(screen_name) 
+
+
+#creates a data frame holding information about number of followers, friends (users they follow), lists they belong to, number of tweets (statuses) or how many times were they marked favourite.
+user <- lookup_users(useres$screen_name)
+user %>% select(dplyr::contains("count")) %>% head()
+
+#creates a ranking  that is simply calculated by a percentile for each of those variables and sum it altogether for each user. Given that each variable's percentile will give me a value between 0 and 1, The final score can have a maximum value of 5.
+r_users_ranking <- user %>%
+  filter(protected == FALSE) %>% 
+  select(screen_name, dplyr::contains("count")) %>% 
+  unique() %>% 
+  mutate(followers_percentile = ecdf(followers_count)(followers_count),
+         friends_percentile = ecdf(friends_count)(friends_count),
+         listed_percentile = ecdf(listed_count)(listed_count),
+         favourites_percentile = ecdf(favourites_count)(favourites_count),
+         statuses_percentile = ecdf(statuses_count)(statuses_count)
+         ) %>% 
+  group_by(screen_name) %>% 
+  summarise(top_score = followers_percentile + friends_percentile + listed_percentile + favourites_percentile + statuses_percentile) %>% 
+  ungroup() %>% 
+  mutate(ranking = rank(-top_score))
+
+
+#Shows the ranking of the users
+top_15 <- r_users_ranking %>% arrange(desc(top_score)) %>% head(16) %>% arrange(desc(top_score))
+top_15 
+
+
+#Pulls the Just the Screen name and Twitter ID of the influncers
+top15_lookup <- user %>%
+  filter(screen_name %in% top_15$screen_name) %>% 
+  select(screen_name, user_id)
+
+top15_lookup
+
+#Creates a list of just the screen names of the users
+top_15_usernames <- top15_lookup$screen_name
+str(friends_top15)
+
+
+
+#Creates a list of followers of the influncers
+friends_top15 <-   map(top_15_usernames[1:14 ], get_friends)
+names(friends_top15) <- top_15_usernames[1:14]
+str(friends_top15)
+
+
+"turning lists into data frames and putting them together"
+names(friends_top15) <- top_15_usernames
+str(friends_top15)
+
+
+#Using  using purrr:::map2_df this takes a single list of lists, create a name variable in each of those lists based on the list name (twitter_top_user) and convert the result into the data frame. 
+friends_top15 <- map2_df(friends_top15, names(friends_top15), ~ mutate(.x, twitter_top_user = .y)) %>% 
+  rename(friend_id = user_id) %>% select(twitter_top_user, friend_id)
+str(friends_top15)
+(friends_top15)
+
+
+# select friends that all the users have in common
+final_friends_top15 <- friends_top15  %>% 
+  filter(friend_id %in% top15_lookup$user_id)
+
+# add friends' screen_name
+final_friends_top15$friend_name <- top15_lookup$screen_name[match(final_friends_top15$friend_id, top15_lookup$user_id)]
+
+
+#Writes all this to a csv
+write.csv(user[,c("name","screen_name","location")], "users.csv")
+
+
+#final product
+final <- final_friends_top15 %>% select(-friend_id)
+head(final)
+final
+
+
+
+#Creates a Network Graph After turning our data frame into something more usable by igraph and ggraph  Keep in mind that Popularity - defined as the number of edges that go into the node - determines node size.
+png(file="Influncernetworkgraph.png",width=1000,height=700)
+f1 <- graph_from_data_frame(final, directed = TRUE, vertices = NULL)
+V(f1)$Popularity <- degree(f1, mode = 'in')
+
+ggraph(f1, layout='kk') + 
+  geom_edge_fan(aes(alpha = ..index..), show.legend = FALSE) +
+  geom_node_point(aes(size = Popularity)) +
+  geom_node_text(aes(label = name, fontface='bold'), 
+                 color = 'white', size = 3) +
+  theme_graph(background = 'dimgray', text_colour = 'white',title_size = 30)
+dev.off()
+
+
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
