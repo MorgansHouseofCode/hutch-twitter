@@ -23,3 +23,5 @@ addfinalexceldatatotweetdatabase.py was used to grab information from an Excel s
 filluserlist.py was used to create a file "userlist.json", of all the screen names (no user ID numbers) of all the users who interacted with @fredhutch posts; this script took from the tweet database (user_timeline_with etc.) to fill the user list JSON file.
 
 filluserdatabase.py, in turn, took the usernames from the "userlist.json" file and retrieved all the additional information it could on each user, storing it in "userdatabase.json".
+
+addinteractionstouserdatabase.py made analysis of individual users' interactions with the @fredhutch tweets easier for Aramya and Morgan; it essentially "tallied up" the favorites, retweets, and @ mentions of each user and saved it to the user database, creating "userdatabase_with_interactions.json".
