@@ -1,0 +1,216 @@
+
+#Loading the libraries 
+```{r}
+library(tm)
+library(readxl)
+library(NLP)
+```
+
+#Loading the data in
+```{r}
+library(readr)
+worksheetfulldesc <- read_csv("~/userdatabase_with_interactions.csv", 
+    col_types = cols(Id = col_character()))
+View(worksheetfulldesc)
+```
+
+
+#Create the corpus
+```{r}
+
+tweets_corpus = Corpus(VectorSource(worksheetfulldesc$Description))
+tweet_corpus = Corpus(VectorSource(worksheetfulldesc$Description))
+
+
+inspect(tweet_corpus[1])
+
+
+```
+
+
+#Prints out the stopwords and checks them
+```{r}
+
+print(stopwords("en"))
+"supporting" %in% stopwords("en")
+
+"many" %in% stopwords("en")
+"get" %in% stopwords("en")
+"hutch" %in% stopwords("en")
+"can" %in% stopwords("en") 
+
+```
+
+
+```{r}
+
+# remove words with non-ASCII characters
+# assuming you read your txt file in as a vector, eg. 
+
+
+# dat <- readLines('~/temp/dat.txt')
+dat <- "Special,  satisfação, Happy, Sad, Potential, für"
+# convert string to vector of words
+dat2 <- unlist(strsplit(dat, split=", "))
+# find indices of words with non-ASCII characters
+dat3 <- grep("dat2", iconv(dat2, "latin1", "ASCII", sub="dat2"))
+# subset original vector of words to exclude words with non-ASCII char
+dat4 <- dat2[-dat3]
+# convert vector back to a string
+dat5 <- paste(dat4, collapse = ", ")
+# make corpus
+require(tm)
+words1 <- Corpus(VectorSource(dat5))
+inspect(words1)
+
+
+dat1 <- sapply(worksheetfulldesc, function(row) iconv(row, "latin1", "ASCII", sub="")) 
+dat1= as.data.frame(dat1)
+#then back to a corpus: 
+tweets_corpus <- Corpus(VectorSource(dat1$Description))
+
+
+```
+
+
+#cleaning and stemming the corpus and checking it 
+
+```{r}
+tweets_corpus= tm_map(tweets_corpus, content_transformer(tolower))
+tweets_corpus= tm_map(tweets_corpus, removeNumbers)
+tweets_corpus= tm_map(tweets_corpus, removePunctuation)
+tweets_corpus= tm_map(tweets_corpus, removeWords, c("the", "and", stopwords("english")))
+tweets_corpus=  tm_map(tweets_corpus, stripWhitespace)
+
+
+inspect(tweets_corpus[1])
+inspect(tweet_corpus[1])
+
+
+```
+
+#Creates a Document Term matrix
+```{r}
+
+
+tweets_dtm <- DocumentTermMatrix(tweets_corpus)
+tweets_dtm
+
+
+
+
+
+```
+
+
+#checks the Document Term Matrix
+```{r}
+
+inspect(tweets_dtm[500:505, 500:505])
+
+inspect(tweets_dtm[2171:2179, ])
+
+
+```
+
+
+
+
+
+
+
+#Does the TFIDF to find the top terms
+```{r}
+
+tweets_dtm_tfidf2 <- DocumentTermMatrix(tweets_corpus, control = list(weighting = weightTfIdf))
+
+
+
+
+
+terms=Terms(tweets_dtm_tfidf2)
+
+
+"lab" %in% terms
+"get" %in% stopwords("en")
+"get" %in% terms
+
+"people" %in% terms
+
+#terms
+
+"â???o" %in% Terms(tweets_dtm_tfidf2)
+"â???oscared" %in% terms
+"leader" %in% terms
+"scienc" %in% terms
+
+
+
+
+#inspect(tweets_dtm_tfidf[,1:2])
+
+
+
+```
+
+
+
+#Word frequency
+```{r}
+
+tdm <- TermDocumentMatrix(tweets_corpus)
+
+
+#gets rid of empty cells 
+ui = unique(tdm$i)
+tdm.new = tdm[ui,]
+any(tdm.new==0)
+allmisscols <- apply(tdm.new,2, function(x)all(is.na(x)));  
+colswithallmiss <-names(allmisscols[allmisscols>0]);    
+print("the columns with all values missing");    
+print(colswithallmiss);
+
+
+#lets us see the frequency of the words 
+m <- as.matrix(tdm.new)
+v <- sort(rowSums(m), decreasing = TRUE)
+d <- data.frame(word = names(v), freq=v)
+rownames(d) <- NULL
+head(d,10)
+
+
+
+
+
+```
+
+```{r}
+
+
+tweets_dtm_tfidf <- DocumentTermMatrix(tweets_corpus, control = list(weighting = weightTfIdf))
+
+
+tweets_dtm_tfidf = removeSparseTerms(tweets_dtm_tfidf, .97)
+
+
+
+# print("2171")
+# inspect(tweets_dtm_tfidf[2171:2179,])
+
+# print("head")
+ head.matrix(tweets_dtm_tfidf)
+# print("1-8")
+# inspect(tweets_dtm_tfidf[1:8,])
+# print("tweets")
+ tweets_dtm_tfidf
+# 
+# print("")
+ Terms(tweets_dtm_tfidf)
+# print("")
+#
+# str(tweets_dtm_tfidf)
+
+
+
+```
+
