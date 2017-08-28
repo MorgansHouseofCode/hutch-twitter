@@ -1,0 +1,52 @@
+```{r}
+
+library(readr)
+library(dplyr)
+library(readr)
+worksheet <- read_csv("~/userdatabase_with_interactions.csv", 
+    col_types = cols(Id = col_character()))
+View(worksheet)
+```
+
+```{r}
+
+
+"Assistant" %in% worksheet$Description
+ grep("cancer", worksheet$Description)
+
+ x= grep("cancer", worksheet$Description)
+ 
+ 
+ 
+ craycray=worksheet$Description[grep("cancer",worksheet$Description)]
+ a=as.data.frame(x)
+ 
+ 
+ 
+ Descriptionofpeoplewithcancerinit <- as.data.frame(worksheet$Description[grep("cancer",worksheet$Description)])
+
+ 
+ 
+ 
+ 
+ 
+names(Descriptionofpeoplewithcancerinit)[1]<- "Description"
+
+total <- merge(worksheet,Descriptionofpeoplewithcancerinit,by="Description", all = FALSE)
+
+tk=total %>%  select(`Document Index (generated)`, everything())
+peoplewithcancerindescription=tk
+remove(tk)
+remove(craycray)
+remove(a)
+peoplewithcancerindescription =peoplewithcancerindescription[order(peoplewithcancerindescription$`Document Index (generated)`),]
+
+write.csv(peoplewithcancerindescription, "userswithcancerintheirDescription.csv")
+
+
+
+
+```
+
+
+
